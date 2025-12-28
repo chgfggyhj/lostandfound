@@ -17,7 +17,10 @@ services:
       - ./logs:/app/logs
     environment:
       - USE_SQLITE=false
-      - DATABASE_URL=mysql+pymysql://${MYSQL_USER:-root}:${MYSQL_PASSWORD:-password}@mysql:3306/${MYSQL_DATABASE:-lost_and_found}?charset=utf8mb4
+      - MYSQL_HOST=mysql
+      - MYSQL_USER=${MYSQL_USER:-lost_found_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-lost_and_found}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
@@ -33,14 +36,12 @@ services:
     container_name: lost_and_found_mysql
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-rootpassword}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-lost_and_found}
       - MYSQL_USER=${MYSQL_USER:-lost_found_user}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-password}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
