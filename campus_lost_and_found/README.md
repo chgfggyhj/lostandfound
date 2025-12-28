@@ -71,18 +71,49 @@ copy .env.example .env
 uvicorn main:app --reload
 ```
 
-### 方式二：Docker 部署
+### 方式二：Docker 部署（本地）
 
 ```bash
 # 1. 配置环境变量
 cp .env.docker .env
-# 编辑 .env 文件
+# 编辑 .env 文件，填入密码和 API 密钥
 
 # 2. 启动服务
-docker-compose up -d --build
+docker compose up -d --build
 
 # 3. 查看日志
-docker-compose logs -f
+docker compose logs -f
+```
+
+### 方式三：Docker 部署到服务器
+
+```bash
+# 1. SSH 登录服务器
+ssh user@your-server-ip
+
+# 2. 创建目录
+mkdir -p /opt/lost-and-found && cd /opt/lost-and-found
+
+# 3. 下载配置文件
+curl -O https://raw.githubusercontent.com/chgfggyhj/lostandfound/main/campus_lost_and_found/docker-compose.yml
+
+# 4. 创建并编辑 .env 文件
+cat > .env << 'EOF'
+MYSQL_ROOT_PASSWORD=your_root_password
+MYSQL_USER=lost_found_user
+MYSQL_PASSWORD=your_app_password
+MYSQL_DATABASE=lost_and_found
+SECRET_KEY=your-secret-key
+DEEPSEEK_API_KEY=your_api_key
+DASHSCOPE_API_KEY=your_api_key
+EOF
+
+# 5. 启动服务
+docker compose up -d
+
+# 6. 查看状态
+docker compose ps
+docker compose logs -f web
 ```
 
 ### 访问地址
