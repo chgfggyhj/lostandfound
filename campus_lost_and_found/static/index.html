@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园失物招领系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">🔍</span>
+            <span class="brand-text">校园失物招领</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-view="home">首页</a>
+            <a href="#" class="nav-link" data-view="post">发布物品</a>
+            <a href="#" class="nav-link" data-view="my-items">我的物品</a>
+            <a href="#" class="nav-link" data-view="match-progress">匹配进度</a>
+            <a href="#" class="nav-link" data-view="notifications">消息 <span class="badge" id="notif-badge"></span></a>
+        </div>
+        <div class="nav-user" id="nav-user">
+            <!-- 动态加载用户信息或登录按钮 -->
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container">
+        <!-- 登录/注册模态框 -->
+        <div class="modal" id="auth-modal">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeAuthModal()">&times;</span>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">登录</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')">注册</button>
+                </div>
+
+                <!-- 登录表单 -->
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" name="username" required placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" name="password" required placeholder="请输入密码">
+                    </div>
+                    <button type="submit" class="submit-btn">登录</button>
+                </form>
+
+                <!-- 注册表单 -->
+                <form id="register-form" class="auth-form" style="display:none;">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" name="username" required placeholder="设置用户名">
+                    </div>
+                    <div class="form-group">
+                        <label>密码</label>
+                        <input type="password" name="password" required placeholder="设置密码">
+                    </div>
+                    <div class="form-group">
+                        <label>姓名</label>
+                        <input type="text" name="name" required placeholder="您的真实姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>联系方式</label>
+                        <input type="text" name="contact_info" required placeholder="手机号或微信">
+                    </div>
+                    <button type="submit" class="submit-btn">注册</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 首页视图 -->
+        <section id="home-view" class="view active">
+            <div class="hero">
+                <h1>多智能体校园失物招领系统</h1>
+                <p>AI 智能体自动匹配失物与拾物，帮助物归原主</p>
+            </div>
+
+            <div class="section-header">
+                <h2>📋 物品列表</h2>
+                <div class="filter-tabs">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="LOST">丢失物品</button>
+                    <button class="filter-btn" data-filter="FOUND">拾取物品</button>
+                </div>
+            </div>
+
+            <div class="items-grid" id="items-container">
+                <!-- 动态加载物品卡片 -->
+            </div>
+        </section>
+
+        <!-- 发布物品视图 -->
+        <section id="post-view" class="view">
+            <div class="form-container">
+                <h2>📝 发布物品信息</h2>
+                <form id="post-form">
+                    <div class="form-group">
+                        <label>物品类型</label>
+                        <div class="type-selector">
+                            <label class="type-option">
+                                <input type="radio" name="type" value="LOST" checked>
+                                <span class="type-card lost">
+                                    <span class="type-icon">😢</span>
+                                    <span>我丢失了</span>
+                                </span>
+                            </label>
+                            <label class="type-option">
+                                <input type="radio" name="type" value="FOUND">
+                                <span class="type-card found">
+                                    <span class="type-icon">🎉</span>
+                                    <span>我捡到了</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 图片上传 -->
+                    <div class="form-group">
+                        <label>上传物品图片</label>
+                        <div class="upload-area" id="upload-area">
+                            <input type="file" id="image-input" accept="image/*" style="display:none;">
+                            <div class="upload-placeholder" onclick="document.getElementById('image-input').click()">
+                                <span class="upload-icon">📷</span>
+                                <p>点击上传图片</p>
+                                <p class="upload-hint">支持 jpg, png, gif 格式</p>
+                            </div>
+                            <div class="upload-preview" id="upload-preview" style="display:none;">
+                                <img id="preview-image" src="">
+                                <button type="button" class="remove-image" onclick="removeImage()">×</button>
+                            </div>
+                        </div>
+                        <div id="ai-analysis" class="ai-analysis" style="display:none;">
+                            <div class="ai-loading" id="ai-loading">
+                                <span class="spinner"></span> AI 正在识别图片...
+                            </div>
+                            <div class="ai-result" id="ai-result" style="display:none;">
+                                <h4>🤖 AI 识别结果</h4>
+                                <p id="ai-description-text"></p>
+                                <button type="button" class="action-btn small"
+                                    onclick="useAiDescription()">使用此描述</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>物品名称</label>
+                        <input type="text" id="title" name="title" placeholder="例如：黑色皮革钱包" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>详细描述</label>
+                        <textarea id="description" name="description" rows="4" placeholder="请描述物品的颜色、特征、内容物等信息..."
+                            required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>发现/丢失地点</label>
+                        <input type="text" id="location" name="location" placeholder="例如：图书馆二楼" required>
+                    </div>
+
+                    <input type="hidden" id="ai-description" name="ai_description">
+                    <input type="hidden" id="image-path" name="image_path">
+
+                    <button type="submit" class="submit-btn">
+                        <span>提交发布</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- 我的物品视图 -->
+        <section id="my-items-view" class="view">
+            <h2>📦 我的物品</h2>
+            <div class="items-grid" id="my-items-container">
+                <!-- 动态加载 -->
+            </div>
+        </section>
+
+        <!-- 消息通知视图 -->
+        <section id="notifications-view" class="view">
+            <h2>🔔 消息通知</h2>
+            <div class="notifications-list" id="notifications-container">
+                <!-- 动态加载 -->
+            </div>
+        </section>
+
+        <!-- 匹配进度视图 -->
+        <section id="match-progress-view" class="view">
+            <h2>🔄 匹配进度</h2>
+            <div class="progress-container">
+                <div class="progress-tabs">
+                    <button class="progress-tab active" onclick="loadProgressTab('all')">全部会话</button>
+                    <button class="progress-tab" onclick="loadProgressTab('active')">进行中</button>
+                    <button class="progress-tab" onclick="loadProgressTab('success')">匹配成功</button>
+                </div>
+                <div class="sessions-list" id="sessions-container">
+                    <!-- 动态加载 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 协商详情视图 -->
+        <section id="negotiation-detail-view" class="view">
+            <button class="back-btn" onclick="goBackToProgress()">← 返回匹配进度</button>
+            <h2>🤝 协商详情</h2>
+            <div class="negotiation-detail" id="negotiation-detail">
+                <!-- 动态加载 -->
+            </div>
+        </section>
+
+        <!-- 物品详情模态框 -->
+        <div class="modal" id="item-detail-modal">
+            <div class="modal-content large">
+                <span class="modal-close" onclick="closeItemModal()">&times;</span>
+                <div id="item-detail-content">
+                    <!-- 动态加载 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑物品模态框 -->
+        <div class="modal" id="edit-item-modal">
+            <div class="modal-content">
+                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+                <h3>✏️ 编辑物品</h3>
+                <form id="edit-item-form">
+                    <input type="hidden" id="edit-item-id">
+                    <div class="form-group">
+                        <label>标题</label>
+                        <input type="text" id="edit-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <textarea id="edit-description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>位置</label>
+                        <input type="text" id="edit-location" required>
+                    </div>
+                    <button type="submit" class="submit-btn">保存修改</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <footer class="footer">
+        <p>🎓 多智能体校园失物招领系统 V2.0 | Powered by AI Agents</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
